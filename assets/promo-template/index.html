@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{APP_NAME}} — Promo</title>
+<style>
+  :root {
+    --color-bg: {{COLOR_BG}};
+    --color-surface: {{COLOR_SURFACE}};
+    --color-text: {{COLOR_TEXT}};
+    --color-accent: {{COLOR_ACCENT}};
+    --font-display: {{FONT_DISPLAY}};
+    --font-body: {{FONT_BODY}};
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body), "Noto Sans SC", sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+  }
+  .promo {
+    width: 100%;
+    max-width: 720px;
+    background: var(--color-surface);
+    border-radius: 28px;
+    padding: 64px 56px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.12);
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--font-body), sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-family: var(--font-display), var(--font-body), sans-serif;
+    font-size: clamp(34px, 6vw, 56px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .subhead {
+    font-size: clamp(16px, 2.4vw, 20px);
+    opacity: 0.78;
+    max-width: 32em;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+  .cta {
+    display: inline-block;
+    background: var(--color-accent);
+    color: #fff;
+    font-family: var(--font-body), sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 16px 40px;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+  .meta {
+    margin-top: 28px;
+    font-size: 13px;
+    opacity: 0.55;
+  }
+  /* Replace this block with a real screenshot / UI snippet */
+  .shot {
+    margin: 40px auto 0;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 9 / 16;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-surface) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+  <main class="promo">
+    <span class="badge">{{CATEGORY}}</span>
+    <h1>{{HEADLINE}}</h1>
+    <p class="subhead">{{SUBHEAD}}</p>
+    <a class="cta" href="#">{{CTA_LABEL}}</a>
+    <div class="shot">[ 在此放入产品截图 / UI 片段 ]</div>
+    <p class="meta">{{APP_NAME}} · 由 app-store-screenshot-recommender 生成</p>
+  </main>
+</body>
+</html>

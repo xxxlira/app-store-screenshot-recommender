@@ -1,0 +1,5 @@
+PLACEHOLDER — replace this file with your collected reference image named `cover.png`.
+
+This folder is the "duolingo-playful" case registered in references/library.md.
+Drop your collected App Store / promo screenshot here as `cover.png` (or `cover.jpg`).
+Keep it read-only; the skill only reads it as context.
