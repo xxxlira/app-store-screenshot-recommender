@@ -16,7 +16,7 @@
 ## 核心流程
 
 1. **理解方向** — 分析图片风格或推断 App 品类/受众/调性，并追问你的偏好。
-2. **匹配案例** — 从 `references/library.md` 索引的素材库中挑出若干套（数量你定，默认 3）。
+2. **匹配案例** — 从 `references/collected/manifest.json`（约 1400+ 张真实应用市场图，按 行业/分类/配色 标签索引）中，由 `scripts/find_cases.py` 挑出若干套多样化候选（数量你定，默认 3）。
 3. **多轮确认** — 逐套展示参考图 + 设计说明 + 推荐理由 + 推荐样式，反复问「要不要换参考图」直到你确认。
 4. **产出交付** — 设计说明文档（含配色/字体）、生成的示例图、可编辑前端脚手架。
 
@@ -24,15 +24,19 @@
 
 ```
 app-store-screenshot-recommender/
-├── SKILL.md              # skill 定义与交互流程
+├── SKILL.md                 # skill 定义与交互流程
 ├── references/
-│   ├── library.md        # 收录案例索引（分类/风格标签/路径）
-│   ├── style-guide.md    # 配色与字体方法论
-│   └── cases/            # 已收录案例：brief.md + 参考图
+│   ├── library.md           # 素材库概览与标签词表
+│   ├── style-guide.md       # 配色与字体方法论
+│   ├── collected/           # 已收录的成片库（来自飞书知识库）
+│   │   ├── manifest.json    # 索引：每张图的 行业/分类/配色/路径
+│   │   └── <record_id>.jpg  # 参考图（以飞书 record_id 命名）
+│   └── cases/               # 可选：手工精编的深层案例（brief.md + 图）
 ├── assets/
-│   └── promo-template/   # 前端宣传页脚手架模板（含可替换 token）
+│   └── promo-template/      # 前端宣传页脚手架模板（含可替换 token）
 └── scripts/
-    └── scaffold_promo.py # 复制模板并注入 app 名/配色/字体
+    ├── find_cases.py        # 按标签从 manifest 匹配多样化候选参考图
+    └── scaffold_promo.py    # 复制模板并注入 app 名/配色/字体
 ```
 
 ## 安装
@@ -44,11 +48,15 @@ app-store-screenshot-recommender/
 
 也可直接解压 `app-store-screenshot-recommender.zip` 到对应目录。
 
-## 扩展素材库
+## 素材库来源与扩展
 
-1. 把收集到的应用市场图片放进 `references/cases/<case-id>/`（命名为 `cover.png`）。
-2. 写 `brief.md`（结构见 `cases/README.md`）。
-3. 在 `references/library.md` 注册该行，供匹配使用。
+`references/collected/` 中的约 1400+ 张图片是从作者的飞书知识库
+**「APP应用市场宣传图」** 批量导入的真实应用市场宣传图，每条带 行业 / 分类 / 配色
+标签，记录在 `manifest.json`。
+
+- 想看全部标签词表：`python3 -c "import json;print(json.load(open('references/collected/manifest.json'))['tags'])"`
+- 想刷新/扩充：重新跑「抓取 → 下载 → 落盘索引」流水线，提交新的 `manifest.json` 与图片即可。
+- 也可在 `references/cases/<case-id>/` 放手工精编的深层案例（`brief.md` + `cover.png`）。
 
 ## 许可
 

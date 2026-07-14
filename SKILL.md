@@ -56,12 +56,24 @@ collapse it into a single response.
 
 ### Phase 2 — Match candidate sets
 
-1. Read `references/library.md` to understand the curated case categories and tags.
-2. Decide the set count: use the number the user specified; otherwise default to **3**.
-3. Select that many candidate sets from the library that best fit the direction plus the
-   user's stated preferences. For each set, assemble:
-   - **Reference image(s)** — collected files under `references/cases/` (present or link
-     them so the user can see real examples).
+1. Infer filters from the direction plus the user's Phase-1 answer:
+   - `--industry` (e.g. 工具/效率 / 社交 / 游戏) — valid values live under
+     `references/collected/manifest.json` → `tags.industry`.
+   - `--category` (logo / logo更新 / iphone / ipad).
+   - `--color` (配色 tag, e.g. 蓝色 / 多色 / 黑色/深色).
+   - `--keyword` (substring of the app name, optional).
+2. Run the matcher (set count = the number the user specified, else default **3**):
+   ```bash
+   python3 scripts/find_cases.py --industry "<行业>" --category "<分类>" \
+       --color "<配色>" --keyword "<可选>" --k <N>
+   ```
+   It returns diverse candidate images from `references/collected/` together with
+   their metadata (`app` / `industry` / `category` / `color` / `rel_path`). Omit any
+   filter you don't have; when a filter narrows too far it falls back to the full
+   library for diversity.
+3. For each returned candidate, assemble a set with:
+   - **Reference image** — the file at `references/collected/<file>` (show it to the
+     user so they see a real example).
    - **Design brief (设计说明)** — what the style is, its structure, and key elements.
    - **Recommendation rationale (推荐理由)** — why it fits *this* app.
    - **Suggested image design style (推荐样式)** — layout, color, typography, and copy
@@ -93,13 +105,19 @@ Produce the final deliverables:
 
 ## Reference Library Management
 
-The curated library is **partially populated** and meant to grow. To add a case:
+The library is a **flat, programmatically-indexed collection** under
+`references/collected/`:
 
-1. Drop the collected app-market image(s) into `references/cases/<case-id>/`.
-2. Add a per-case design note (`references/cases/<case-id>/brief.md`) describing style,
-   structure, color, typography, and what makes it effective.
-3. Register the case in `references/library.md` with its category tags and path so future
-   runs can match it.
+- `manifest.json` — the single source of truth. Registers every image with
+  `record_id`, `file`, `app`, `industry`, `category`, `color`, `original_name`,
+  `size`. Also lists all valid tag values under `tags` (industry / category / color).
+  Phase 2 matching reads this via `scripts/find_cases.py`.
+- `*.jpg` / `*.png` / ... — the actual reference images, named by their Feishu
+  `record_id`.
+
+It was imported from the user's Feishu wiki "APP应用市场宣传图". To refresh or extend
+it, re-run the collection pipeline (gather → download → finalize) and commit the
+result. Optional hand-curated deep-dives can still live in `references/cases/<case-id>/`.
 
 When the library lacks a good match for the user's direction, say so explicitly and
 either (a) propose the closest available sets, or (b) generate a style from first
@@ -108,18 +126,22 @@ principles using `references/style-guide.md`.
 ## Resources
 
 ### references/
-- `library.md` — index of collected app-market cases with category/style tags and paths.
-  Load this first to drive matching in Phase 2.
+- `collected/manifest.json` — index of all collected app-market images with
+  industry/category/color tags and file paths. Primary input for Phase 2 matching.
+- `collected/` — the reference image files (named by Feishu `record_id`).
 - `style-guide.md` — methodology for color palettes and typography; used for the
   brief's color/font recommendations.
-- `cases/<case-id>/` — collected reference images + per-case design notes. Not loaded
-  wholesale; read the specific case the user is shown.
+- `cases/<case-id>/` — optional hand-curated deep-dive cases (brief.md + image). Not
+  loaded wholesale; read the specific case the user is shown.
+- `library.md` — human-readable overview of the collection and the tag vocabulary.
 
 ### assets/
 - `promo-template/` — HTML/CSS scaffold for a promo/landing page with replaceable app
   name, color tokens, and font variables. Copied into the user's workspace in Phase 4.
 
 ### scripts/
+- `find_cases.py` — matches `references/collected/manifest.json` by industry / category /
+  color / keyword and returns diverse candidate reference images for Phase 2.
 - `scaffold_promo.py` — copies `assets/promo-template/` into a target directory, injects
   the app name and color/font tokens, and reports the output path.
 

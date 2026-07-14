@@ -1,46 +1,54 @@
-# Reference Library — Collected App-Market Cases
+# Reference Library — Collected App-Market Images
 
-This file indexes the curated library of real-world app-store / promo images and their
-design notes. Read it first in Phase 2 to pick candidate sets that match the user's
-direction. The library is **partially populated** — add cases as you collect them (see
-`cases/README.md`).
+This library is a flat, programmatically-indexed collection of real-world
+app-store / promo images imported from the user's Feishu wiki
+**"APP应用市场宣传图"**. Read it (via `scripts/find_cases.py`) first in Phase 2 to
+pick candidate sets that match the user's direction.
 
-## How matching works
+## Layout
 
-Each case carries **category tags** and a **style tag**. When the user gives a direction
-(app category, audience, tone), pick the cases whose tags overlap most, then break ties
-using the user's stated preferences from Phase 1. Present the requested number of sets.
+```
+references/collected/
+  manifest.json      # the index: every image + its tags + valid tag vocabulary
+  <record_id>.jpg    # actual reference images, named by Feishu record_id
+  <record_id>.png
+```
 
-## Categories
+- `manifest.json.cases[]` — one entry per image: `record_id`, `file`, `app`,
+  `industry`, `category`, `color`, `original_name`, `size`.
+- `manifest.json.tags` — the authoritative list of valid values for
+  `industry` / `category` / `color` (use these when calling `find_cases.py`).
 
-| Category        | Typical tone        | Example apps            |
-|-----------------|---------------------|-------------------------|
-| 效率工具        | 清爽 / 专业 / 极简  | 笔记、项目管理、OCR     |
-| 金融 / 严肃     | 信任 / 稳重 / 克制  | 银行、记账、投资         |
-| 游戏 / 娱乐     | 热烈 / 炫酷 / 高饱和| 手游、短视频、社区       |
-| 电商 / 零售     | 促销 / 热闹 / 冲动  | 购物、外卖、生鲜         |
-| 健康 / 生活     | 舒缓 / 自然 / 治愈  | 健身、冥想、习惯养成     |
-| 教育 / 知识     | 清晰 / 亲和 / 有条理| 课程、阅读、语言学习     |
-| 社交 / 社区     | 年轻 / 鲜活 / 个性  | 聊天、交友、兴趣圈       |
+## How matching works (Phase 2)
 
-## Style tags
+1. Infer `industry` / `category` / `color` / `keyword` from the user's direction.
+2. Run the matcher:
 
-`minimal` · `playful` · `premium` · `bold` · `editorial` · `gradient` · `flat` ·
-`3d` · `dark` · `light` · `hand-drawn` · `data-heavy`
+   ```bash
+   python3 scripts/find_cases.py --industry "工具/效率" --category iphone \
+       --color 蓝色 --k 3
+   ```
 
-## Registered cases
+3. It returns diverse candidates (varied color/category) with `rel_path` so you can
+   show the user a real reference image per set.
 
-> Path points to a folder under `cases/`. Each folder contains `brief.md` and the
-> reference image(s). Add new rows as the library grows.
+## Tag vocabulary (from the collection)
 
-| Case ID                    | Category    | Style tags                | Path                              |
-|----------------------------|-------------|---------------------------|-----------------------------------|
-| notion-style-minimal       | 效率工具    | minimal, light, editorial | `cases/notion-style-minimal/`     |
-| duolingo-playful           | 教育/知识   | playful, bold, 3d         | `cases/duolingo-playful/`         |
-| *(add your cases here)*    |             |                           |                                   |
+Use `python3 -c "import json;print(json.load(open('references/collected/manifest.json'))['tags'])"`
+for the live, complete list. Common values:
+
+- **industry (行业)**: 社交, 工具/效率, 购物/买卖/生活, AI相关, 待办/专注/清单,
+  视频/漫画/小说, 游戏, 儿童游戏/幼教, 工具/教育, 工具/阅读, 社交/播客, 工具/影像,
+  工具/修图, ...
+- **category (分类)**: logo, logo更新, iphone, ipad
+- **color (配色)**: 多色, 浅色/彩色, 黑色/深色, 白色, 蓝色, 绿色, 红色, 橘色, 黄色,
+  紫色, 粉色
 
 ## Notes
 
 - When no registered case fits well, say so and either propose the closest sets or
   build a style from first principles using `style-guide.md`.
-- Keep image files read-only; never modify them.
+- Reference images are the user's own collected assets — treat them as read-only
+  context, never modify or delete them.
+- To refresh/extend the collection, re-run the gather → download → finalize pipeline
+  against the Feishu wiki and commit the new `manifest.json` + images.
