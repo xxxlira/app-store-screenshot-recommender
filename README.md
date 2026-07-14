@@ -72,8 +72,6 @@ python3 scripts/build_gallery.py      # 生成 gallery.html + index.html + .noje
 python3 -m http.server 8765 --bind 127.0.0.1   # 访问 http://127.0.0.1:8765/
 ```
 
-网页预览：https://xxxlira.github.io/app-store-screenshot-recommender/
-
 网页首页是卡片网格：每张卡片显示**产品 logo（头像）、产品名称、截图数量，以及几张预览图**；
 点击头像（或卡片）弹出 lightbox，展示该产品的**全部**图片。顶部支持：
 
