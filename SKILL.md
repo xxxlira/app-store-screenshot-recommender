@@ -144,6 +144,31 @@ principles using `references/style-guide.md`.
   color / keyword and returns diverse candidate reference images for Phase 2.
 - `scaffold_promo.py` — copies `assets/promo-template/` into a target directory, injects
   the app name and color/font tokens, and reports the output path.
+- `build_gallery.py` — generates a uinotes-style `gallery.html` from the collected library:
+  a card grid (product logo + name + a few preview screenshots), with search and
+  industry/category/color filters, and a lightbox that shows **all** images of a product
+  when its avatar is clicked. Run it whenever the library changes.
+
+## Browsing the Library as a Webpage
+
+When the user wants to **browse** the whole collection (rather than get matched
+recommendations), generate and open the gallery:
+
+```bash
+python3 scripts/build_gallery.py            # writes gallery.html at the skill root
+```
+
+Then serve the skill directory over HTTP so the relative image paths resolve:
+
+```bash
+python3 -m http.server 8765 --bind 127.0.0.1   # open http://127.0.0.1:8765/gallery.html
+```
+
+The gallery is uinotes.com-style: each product is a card showing its **logo (avatar)**,
+**name**, a screenshot count, and a few preview images. Clicking the avatar (or the card)
+opens a lightbox with **all** images of that product. A search box plus industry /
+category / color dropdowns filter the grid. This is the fastest way for the user to scan
+their own collected references visually.
 
 ## Notes
 

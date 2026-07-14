@@ -34,9 +34,11 @@ app-store-screenshot-recommender/
 │   └── cases/               # 可选：手工精编的深层案例（brief.md + 图）
 ├── assets/
 │   └── promo-template/      # 前端宣传页脚手架模板（含可替换 token）
-└── scripts/
-    ├── find_cases.py        # 按标签从 manifest 匹配多样化候选参考图
-    └── scaffold_promo.py    # 复制模板并注入 app 名/配色/字体
+├── scripts/
+│   ├── find_cases.py        # 按标签从 manifest 匹配多样化候选参考图
+│   ├── scaffold_promo.py    # 复制模板并注入 app 名/配色/字体
+│   └── build_gallery.py     # 生成 uinotes 风格的图库网页 gallery.html
+└── gallery.html             # 由 build_gallery.py 生成（需本地 HTTP 服务打开）
 ```
 
 ## 安装
@@ -57,6 +59,18 @@ app-store-screenshot-recommender/
 - 想看全部标签词表：`python3 -c "import json;print(json.load(open('references/collected/manifest.json'))['tags'])"`
 - 想刷新/扩充：重新跑「抓取 → 下载 → 落盘索引」流水线，提交新的 `manifest.json` 与图片即可。
 - 也可在 `references/cases/<case-id>/` 放手工精编的深层案例（`brief.md` + `cover.png`）。
+
+## 浏览全部素材（图库网页）
+
+想直接**看图库**而不是等匹配推荐时，生成并打开 uinotes 风格的图库网页：
+
+```bash
+python3 scripts/build_gallery.py      # 在技能根目录生成 gallery.html
+python3 -m http.server 8765 --bind 127.0.0.1   # 访问 http://127.0.0.1:8765/gallery.html
+```
+
+网页首页是卡片网格：每张卡片显示**产品 logo（头像）、产品名称、截图数量，以及几张预览图**；
+点击头像（或卡片）弹出 lightbox，展示该产品的**全部**图片。顶部支持按名称搜索、行业 / 分类 / 配色筛选。
 
 ## 许可
 
