@@ -4,7 +4,6 @@
 
 通过一段文字描述（你的 App / 产品）或一张参考图片，从**已收录的应用市场图片与设计说明素材库**中匹配出若干套设计方向，每套包含：参考图、设计说明、推荐理由、推荐的图片设计样式。它会**多轮追问**「要不要换参考图」，直到你确认，再产出设计说明文档、生成的示例图与前端代码脚手架。
 
-网页预览：https://xxxlira.github.io/app-store-screenshot-recommender/
 
 ## 触发方式
 
@@ -72,6 +71,8 @@ app-store-screenshot-recommender/
 python3 scripts/build_gallery.py      # 生成 gallery.html + index.html + .nojekyll
 python3 -m http.server 8765 --bind 127.0.0.1   # 访问 http://127.0.0.1:8765/
 ```
+
+网页预览：https://xxxlira.github.io/app-store-screenshot-recommender/
 
 网页首页是卡片网格：每张卡片显示**产品 logo（头像）、产品名称、截图数量，以及几张预览图**；
 点击头像（或卡片）弹出 lightbox，展示该产品的**全部**图片。顶部支持：
