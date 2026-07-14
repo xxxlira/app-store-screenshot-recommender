@@ -37,8 +37,10 @@ app-store-screenshot-recommender/
 ├── scripts/
 │   ├── find_cases.py        # 按标签从 manifest 匹配多样化候选参考图
 │   ├── scaffold_promo.py    # 复制模板并注入 app 名/配色/字体
-│   └── build_gallery.py     # 生成 uinotes 风格的图库网页 gallery.html
-└── gallery.html             # 由 build_gallery.py 生成（需本地 HTTP 服务打开）
+│   └── build_gallery.py     # 生成 uinotes 风格图库网页（含 GitHub Pages 入口）
+├── gallery.html             # 图库网页（本地 HTTP 服务打开）
+├── index.html               # GitHub Pages 入口（内容同 gallery.html）
+└── .nojekyll                # 让 Pages 原样托管静态资源
 ```
 
 ## 安装
@@ -65,12 +67,26 @@ app-store-screenshot-recommender/
 想直接**看图库**而不是等匹配推荐时，生成并打开 uinotes 风格的图库网页：
 
 ```bash
-python3 scripts/build_gallery.py      # 在技能根目录生成 gallery.html
-python3 -m http.server 8765 --bind 127.0.0.1   # 访问 http://127.0.0.1:8765/gallery.html
+python3 scripts/build_gallery.py      # 生成 gallery.html + index.html + .nojekyll
+python3 -m http.server 8765 --bind 127.0.0.1   # 访问 http://127.0.0.1:8765/
 ```
 
 网页首页是卡片网格：每张卡片显示**产品 logo（头像）、产品名称、截图数量，以及几张预览图**；
-点击头像（或卡片）弹出 lightbox，展示该产品的**全部**图片。顶部支持按名称搜索、行业 / 分类 / 配色筛选。
+点击头像（或卡片）弹出 lightbox，展示该产品的**全部**图片。顶部支持：
+
+- 按名称搜索、行业 / 分类下拉筛选；
+- **可点击的配色色板**（颜色名 → 代表色，点一下按配色筛选）；
+- **🎲 随机灵感**按钮：在当前筛选结果内随机打开一款产品找灵感。
+
+## 在线访问（GitHub Pages）
+
+生成器已额外产出 `index.html` 与 `.nojekyll`，可直接发布到 GitHub Pages：
+
+1. 提交 `index.html`、`.nojekyll`、`references/collected/` 图片到仓库；
+2. 仓库 **Settings → Pages** → Source 选 `Deploy from a branch`，选 `main` 分支、根目录 `/`；
+3. 等待部署，访问 `https://<用户名>.github.io/app-store-screenshot-recommender/`。
+
+图片走相对路径，线上/本地一致，无需改配置。注意 GitHub 单仓库软上限约 1GB、单文件 100MB。
 
 ## 许可
 

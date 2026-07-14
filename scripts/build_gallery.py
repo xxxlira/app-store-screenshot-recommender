@@ -2,15 +2,21 @@
 """build_gallery.py — 生成 uinotes 风格的应用市场图库网页。
 
 读取 references/collected/manifest.json，按产品（app 名称）分组，
-输出一个自包含、可直接双击打开的 gallery.html：
+输出一个自包含、可直接双击打开、且可发布到 GitHub Pages 的图库网页：
 
   - 首页：卡片网格，每张卡片显示 产品 logo（头像）、产品名称、
           截图数量，以及「部分」应用市场图（预览截图）。
   - 点击头像 / 卡片：打开 lightbox，展示该产品「全部」图片。
-  - 顶部筛选：搜索框 + 行业 / 分类 / 配色 下拉。
+  - 顶部筛选：搜索框 + 行业 / 分类 下拉 + 可点击「配色色板」。
+  - 「🎲 随机灵感」按钮：随机打开一款产品，激发设计灵感。
 
-图片通过相对路径 references/collected/<file> 引用，因此 gallery.html
-需放在 skill 根目录（与 references/ 同级）才能正确加载。
+产出文件（默认写在 skill 根目录，与 references/ 同级）：
+  - gallery.html   本地双击可用（相对路径引用图片）
+  - index.html     内容与 gallery.html 相同，作为 GitHub Pages 默认入口
+  - .nojekyll      让 GitHub Pages 原样托管静态资源
+
+图片通过相对路径 references/collected/<file> 引用，因此这些 HTML
+需与 references/ 同级，线上（Pages）与本地（http.server）均可正确加载。
 """
 import argparse
 import json
@@ -24,6 +30,21 @@ DEFAULT_OUTPUT = os.path.join(SKILL_ROOT, "gallery.html")
 
 IMG_REL = "references/collected/"  # 相对 gallery.html 的图片目录
 LOGO_CATS = {"logo", "logo更新"}
+
+# 配色名 -> 代表色（用于可视化色板）。渐变色用 CSS gradient 表示。
+COLOR_HEX = {
+    "多色": "linear-gradient(135deg,#ff5a8a,#ffb648,#34c759,#3b82f6,#8b5cf6)",
+    "浅色/彩色": "linear-gradient(135deg,#a8edea,#fed6e3,#fff1b8)",
+    "橘色": "#ff8a3d",
+    "白色": "#ffffff",
+    "粉色": "#ff6fa5",
+    "紫色": "#8b5cf6",
+    "红色": "#f4433c",
+    "绿色": "#34c759",
+    "蓝色": "#3b82f6",
+    "黄色": "#ffcc00",
+    "黑色/深色": "#1d1d1f",
+}
 
 
 def group_by_app(manifest):
@@ -86,19 +107,17 @@ def build_html(apps, manifest):
     categories = [t for t in (tags.get("category") or []) if t]
     colors = [t for t in (tags.get("color") or []) if t]
 
-    data_js = json.dumps(apps, ensure_ascii=False)
-    industries_js = json.dumps(industries, ensure_ascii=False)
-    categories_js = json.dumps(categories, ensure_ascii=False)
-    colors_js = json.dumps(colors, ensure_ascii=False)
+    # 色板：颜色名 + 代表色（未在映射表中的用中性灰）
+    swatches = [{"name": c, "hex": COLOR_HEX.get(c, "#c7c7cc")} for c in colors]
 
     return HTML_TEMPLATE.format(
         n_apps=len(apps),
         n_imgs=total_imgs,
         img_rel=IMG_REL,
-        data_js=data_js,
-        industries_js=industries_js,
-        categories_js=categories_js,
-        colors_js=colors_js,
+        data_js=json.dumps(apps, ensure_ascii=False),
+        industries_js=json.dumps(industries, ensure_ascii=False),
+        categories_js=json.dumps(categories, ensure_ascii=False),
+        swatches_js=json.dumps(swatches, ensure_ascii=False),
     )
 
 
@@ -119,19 +138,36 @@ HTML_TEMPLATE = """<!doctype html>
     -webkit-font-smoothing:antialiased}}
   a{{color:inherit;text-decoration:none}}
   header{{max-width:1200px;margin:0 auto;padding:40px 24px 8px}}
+  .title-row{{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}}
   h1{{font-size:30px;font-weight:700;margin:0 0 6px;letter-spacing:-.5px}}
   .sub{{color:var(--muted);font-size:14px;margin:0}}
-  .filters{{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 8px}}
+  .btn-random{{border:none;background:var(--accent);color:#fff;border-radius:12px;
+    padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;
+    box-shadow:0 4px 14px rgba(255,90,138,.35);transition:transform .12s,box-shadow .12s}}
+  .btn-random:hover{{transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,90,138,.45)}}
+  .btn-random:active{{transform:translateY(0) scale(.97)}}
+  .filters{{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 4px}}
   .filters input,.filters select{{
     border:1px solid var(--line);background:#fff;border-radius:10px;
     padding:9px 12px;font-size:14px;color:var(--text);outline:none}}
   .filters input{{flex:1;min-width:200px}}
   .filters input:focus,.filters select:focus{{border-color:var(--accent)}}
+  /* 配色色板 */
+  .palette{{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0 2px}}
+  .palette .lbl{{font-size:13px;color:var(--muted);margin-right:2px}}
+  .sw{{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;
+    border-radius:20px;padding:4px 12px 4px 6px;font-size:13px;color:var(--text);cursor:pointer;
+    transition:border-color .12s,box-shadow .12s,transform .12s}}
+  .sw:hover{{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.08)}}
+  .sw .dot{{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.12);flex:none}}
+  .sw.active{{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,90,138,.18)}}
   main{{max-width:1200px;margin:0 auto;padding:18px 24px 80px}}
   .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}}
   .card{{background:var(--card);border:1px solid var(--line);border-radius:16px;
     padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s}}
   .card:hover{{transform:translateY(-3px);box-shadow:0 4px 10px rgba(0,0,0,.08),0 16px 36px rgba(0,0,0,.10)}}
+  .card.flash{{animation:flash 1s ease}}
+  @keyframes flash{{0%{{box-shadow:0 0 0 3px var(--accent)}}100%{{box-shadow:var(--shadow)}}}}
   .card-top{{display:flex;align-items:center;gap:12px}}
   .avatar{{width:46px;height:46px;border-radius:12px;object-fit:cover;background:#f0f0f3;flex:none;
     border:1px solid var(--line);cursor:pointer}}
@@ -167,14 +203,19 @@ HTML_TEMPLATE = """<!doctype html>
 </head>
 <body>
 <header>
-  <h1>应用市场图库</h1>
-  <p class="sub">App Store / 应用市场宣传图灵感库 · 共 {n_apps} 款产品 · {n_imgs} 张图</p>
+  <div class="title-row">
+    <div>
+      <h1>应用市场图库</h1>
+      <p class="sub">App Store / 应用市场宣传图灵感库 · 共 {n_apps} 款产品 · {n_imgs} 张图</p>
+    </div>
+    <button class="btn-random" id="btnRandom">🎲 随机灵感</button>
+  </div>
   <div class="filters">
     <input id="search" type="search" placeholder="搜索产品名…">
     <select id="f-industry"><option value="">全部行业</option></select>
     <select id="f-category"><option value="">全部分类</option></select>
-    <select id="f-color"><option value="">全部配色</option></select>
   </div>
+  <div class="palette" id="palette"><span class="lbl">配色：</span></div>
 </header>
 <main><div class="grid" id="grid"></div></main>
 
@@ -196,25 +237,39 @@ const IMG = "{img_rel}";
 const DATA = {data_js};
 const INDUSTRIES = {industries_js};
 const CATEGORIES = {categories_js};
-const COLORS = {colors_js};
+const SWATCHES = {swatches_js};
 
 // 填充下拉
 function fill(sel, arr){{ arr.forEach(v=>{{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }}); }}
 fill(document.getElementById('f-industry'), INDUSTRIES);
 fill(document.getElementById('f-category'), CATEGORIES);
-fill(document.getElementById('f-color'), COLORS);
 
 const grid = document.getElementById('grid');
 const search = document.getElementById('search');
 const fInd = document.getElementById('f-industry');
 const fCat = document.getElementById('f-category');
-const fCol = document.getElementById('f-color');
+const palette = document.getElementById('palette');
+
+// 配色色板（可点击，单选切换）
+let activeColor = "";
+SWATCHES.forEach(s => {{
+  const el = document.createElement('button');
+  el.className = 'sw';
+  el.dataset.color = s.name;
+  el.innerHTML = `<span class="dot" style="background:${{s.hex}}"></span>${{s.name}}`;
+  el.addEventListener('click', () => {{
+    activeColor = (activeColor === s.name) ? "" : s.name;
+    document.querySelectorAll('.sw').forEach(x => x.classList.toggle('active', x.dataset.color === activeColor));
+    render();
+  }});
+  palette.appendChild(el);
+}});
 
 function matches(a){{
   const q = search.value.trim().toLowerCase();
   if (q && !a.name.toLowerCase().includes(q)) return false;
   if (fInd.value && !a.industries.includes(fInd.value)) return false;
-  if (fCol.value && !a.colors.includes(fCol.value)) return false;
+  if (activeColor && !a.colors.includes(activeColor)) return false;
   if (fCat.value) {{
     const has = a.images.some(i => i.category === fCat.value);
     if (!has) return false;
@@ -244,10 +299,16 @@ function render(){{
 }}
 
 grid.addEventListener('click', e => {{
-  const avatar = e.target.closest('[data-avatar]');
   const card = e.target.closest('.card');
-  if (avatar && card) {{ openModal(card.dataset.name); }}
-  else if (card) {{ openModal(card.dataset.name); }}
+  if (card) openModal(card.dataset.name);
+}});
+
+// 🎲 随机灵感：在「当前筛选结果」内随机挑一款，直接打开全部图
+document.getElementById('btnRandom').addEventListener('click', () => {{
+  const list = DATA.filter(matches);
+  if (!list.length) return;
+  const pick = list[Math.floor(Math.random() * list.length)];
+  openModal(pick.name);
 }});
 
 const modal = document.getElementById('modal');
@@ -272,7 +333,7 @@ function closeModal(){{ modal.classList.remove('show'); document.body.style.over
 modal.addEventListener('click', e => {{ if (e.target.hasAttribute('data-close')) closeModal(); }});
 document.addEventListener('keydown', e => {{ if (e.key === 'Escape') closeModal(); }});
 
-[search, fInd, fCat, fCol].forEach(el => el.addEventListener('input', render));
+[search, fInd, fCat].forEach(el => el.addEventListener('input', render));
 render();
 </script>
 </body>
@@ -284,6 +345,11 @@ def main():
     ap = argparse.ArgumentParser(description="生成 uinotes 风格的应用市场图库网页")
     ap.add_argument("--manifest", default=DEFAULT_MANIFEST, help="manifest.json 路径")
     ap.add_argument("--output", default=DEFAULT_OUTPUT, help="输出的 gallery.html 路径")
+    ap.add_argument(
+        "--no-pages",
+        action="store_true",
+        help="仅生成 gallery.html，不额外产出 index.html / .nojekyll",
+    )
     args = ap.parse_args()
 
     if not os.path.exists(args.manifest):
@@ -293,9 +359,22 @@ def main():
 
     apps = group_by_app(manifest)
     html = build_html(apps, manifest)
+
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"已生成 {args.output}")
+
+    if not args.no_pages:
+        out_dir = os.path.dirname(os.path.abspath(args.output))
+        index_path = os.path.join(out_dir, "index.html")
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        nojekyll = os.path.join(out_dir, ".nojekyll")
+        with open(nojekyll, "w", encoding="utf-8") as f:
+            f.write("")
+        print(f"已生成 {index_path}（GitHub Pages 入口）")
+        print(f"已生成 {nojekyll}")
+
     print(f"  产品数: {len(apps)}  图片总数: {manifest.get('total')}")
 
 
